@@ -24,9 +24,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Check API Key Length (for debugging)
+      - name: Set Git user identity  # This is new
         run: |
-          echo "${{ secrets.OPENSEA_API_KEY }}" | wc -c  # Print length of the API key
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
 
       - name: Run Footium listings script
         run: |
@@ -34,11 +35,6 @@ jobs:
         env:
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-
-      - name: Configure Git
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
 
       - name: Commit and push changes
         run: |
