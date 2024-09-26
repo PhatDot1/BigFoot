@@ -2,22 +2,21 @@ import requests
 import json
 import csv
 import os
+import subprocess
 
-# OpenSea API Key from environment variables
+# OpenSea API Key and Webhook URL from GitHub Secrets
 API_KEY = os.getenv("OPENSEA_API_KEY")
-
-# Webhook URL from environment variables
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
-# Footium Clubs collection slug
+# Footium Clubs collection slug (from the OpenSea URL: https://opensea.io/collection/footium-clubs)
 collection_slug = "footium-clubs"
 
 # URL to fetch all active listings for the collection
 url = f"https://api.opensea.io/api/v2/listings/collection/{collection_slug}/all"
 
-# Initial query parameters
+# Initial query parameters (limit and optional cursor)
 params = {
-    "limit": 100,
+    "limit": 100,  # Max number of listings to return (between 1 and 100)
 }
 
 headers = {
@@ -25,13 +24,13 @@ headers = {
     "x-api-key": API_KEY
 }
 
-# GraphQL endpoint for player metadata
+# Define the updated GraphQL endpoint for player metadata
 GRAPHQL_ENDPOINT = "https://live.api.footium.club/api/graphql"
 
 # CSV file to track posted listings
 CSV_FILE = "footium_clubs_listings.csv"
 
-
+# Function to get player metadata
 def get_player_metadata(club_id, player_number):
     selected_player_id = f"2-{club_id}-{player_number}"
     query = """
@@ -65,21 +64,21 @@ def get_player_metadata(club_id, player_number):
         print(f"Error {response.status_code}: {response.text}")
         return None
 
-
+# Function to check if a player has "Rare" rarity and is unminted
 def has_unminted_rare_player(club_id):
-    for player_number in range(5):
+    for player_number in range(5):  # Assuming player numbers 0 to 4
         metadata = get_player_metadata(club_id, player_number)
         if metadata and metadata.get("rarity") == "Rare":
             return True
     return False
 
-
+# Function to fetch and format listings
 def fetch_listings():
     # Ensure CSV file exists
     if not os.path.exists(CSV_FILE):
         with open(CSV_FILE, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['OpenSea URL', 'Footium URL'])
+            writer.writerow(['OpenSea URL', 'Footium URL'])  # Header row
 
     while True:
         response = requests.get(url, headers=headers, params=params)
@@ -99,9 +98,16 @@ def fetch_listings():
                             opensea_url = f"https://opensea.io/assets/arbitrum/{token}/{identifier}"
                             footium_url = f"https://footium.club/game/club/{identifier}"
 
+                            # Check if the listing is already in the CSV
                             if not is_listing_in_csv(opensea_url):
+                                # Post to webhook
                                 post_to_webhook(opensea_url, footium_url)
+
+                                # Add the listing to the CSV
                                 add_listing_to_csv(opensea_url, footium_url)
+
+                                # Commit and push CSV changes
+                                commit_and_push_changes()
 
                     except (KeyError, IndexError) as e:
                         print(f"Error processing listing: {e}. Skipping...\n")
@@ -120,7 +126,7 @@ def fetch_listings():
             print(response.text)
             break
 
-
+# Function to check if a listing is already in the CSV
 def is_listing_in_csv(opensea_url):
     with open(CSV_FILE, mode='r') as file:
         reader = csv.reader(file)
@@ -129,13 +135,13 @@ def is_listing_in_csv(opensea_url):
                 return True
     return False
 
-
+# Function to add a new listing to the CSV
 def add_listing_to_csv(opensea_url, footium_url):
     with open(CSV_FILE, mode='a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([opensea_url, footium_url])
 
-
+# Function to post to Discord webhook
 def post_to_webhook(opensea_url, footium_url):
     message = f"New club with academy rare listed:\nOpenSea URL: {opensea_url}\nFootium URL: {footium_url}"
     data = {
@@ -147,6 +153,15 @@ def post_to_webhook(opensea_url, footium_url):
     else:
         print(f"Failed to send message to webhook. Status code: {response.status_code}")
 
+# Function to commit and push changes to the CSV
+def commit_and_push_changes():
+    try:
+        subprocess.run(["git", "add", CSV_FILE], check=True)
+        subprocess.run(["git", "commit", "-m", "Update CSV with new listings"], check=True)
+        subprocess.run(["git", "push"], check=True)
+        print("CSV changes committed and pushed.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error committing or pushing changes: {e}")
 
 # Start fetching listings
 fetch_listings()
