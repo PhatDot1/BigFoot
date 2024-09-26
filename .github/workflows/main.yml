@@ -24,14 +24,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Check API Key
+      - name: Check API Key Length (for debugging)
         run: |
-          echo "OPENSEA_API_KEY is set"
-          echo ${{ secrets.OPENSEA_API_KEY }}  # Ensure that this exists (don't print in production)
+          echo "API Key length: ${#secrets.OPENSEA_API_KEY}"
+        env:
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
 
       - name: Run Footium listings script
         run: |
           python SmallFoot.py
+        env:
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
       - name: Configure Git
         run: |
