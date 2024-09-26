@@ -24,6 +24,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
+      - name: Check API Key
+        run: |
+          echo "OPENSEA_API_KEY is set"
+          echo ${{ secrets.OPENSEA_API_KEY }}  # Ensure that this exists (don't print in production)
+
       - name: Run Footium listings script
         run: |
           python SmallFoot.py
