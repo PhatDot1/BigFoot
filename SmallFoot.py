@@ -39,7 +39,7 @@ CSV_FILE = "footium_clubs_listings.csv"
 
 # Function to get player metadata
 def get_player_metadata(club_id, player_number):
-    selected_player_id = f"2-{club_id}-{player_number}"
+    selected_player_id = f"2-{club_id}-{player_number}" # CHANGE TO 3-{club_id}-{player_number} IN SEASON 1
     query = """
     query getPlayerMetadata($where: PlayerWhereUniqueInput!) {
         player(where: $where) {
