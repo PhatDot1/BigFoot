@@ -8,6 +8,13 @@ import subprocess
 API_KEY = os.getenv("OPENSEA_API_KEY")
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
+# Early exit if API key is not found
+if not API_KEY:
+    print("Error: Missing OPENSEA_API_KEY. Exiting script.")
+    exit(1)
+
+print(f"API Key length: {len(API_KEY) if API_KEY else 'API Key is None'}")
+
 # Footium Clubs collection slug (from the OpenSea URL: https://opensea.io/collection/footium-clubs)
 collection_slug = "footium-clubs"
 
@@ -56,7 +63,7 @@ def get_player_metadata(club_id, player_number):
     response = requests.post(GRAPHQL_ENDPOINT, json={"query": query, "variables": variables})
     if response.status_code == 200:
         data = response.json()
-        if "data" in data and "player" in data["data"]:
+        if "data" in data and "player" in data["data"]]:
             return data["data"]["player"]
         else:
             return None
