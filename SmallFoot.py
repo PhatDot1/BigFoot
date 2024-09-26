@@ -39,7 +39,7 @@ CSV_FILE = "footium_clubs_listings.csv"
 
 # Function to get player metadata
 def get_player_metadata(club_id, player_number):
-    selected_player_id = f"2-{club_id}-{player_number}" # CHANGE TO 3-{club_id}-{player_number} IN SEASON 1
+    selected_player_id = f"2-{club_id}-{player_number}"  # CHANGE TO 3-{club_id}-{player_number} IN SEASON 1
     query = """
     query getPlayerMetadata($where: PlayerWhereUniqueInput!) {
         player(where: $where) {
@@ -59,11 +59,10 @@ def get_player_metadata(club_id, player_number):
             "id": selected_player_id
         }
     }
-    
+
     response = requests.post(GRAPHQL_ENDPOINT, json={"query": query, "variables": variables})
     if response.status_code == 200:
         data = response.json()
-        # Fixed issue: Removed the unmatched closing bracket
         if "data" in data and "player" in data["data"]:
             return data["data"]["player"]
         else:
@@ -101,15 +100,19 @@ def fetch_listings():
                     try:
                         identifier = listing['protocol_data']['parameters']['offer'][0]['identifierOrCriteria']
                         token = listing['protocol_data']['parameters']['offer'][0]['token']
+                        price = listing['protocol_data']['parameters']['consideration'][0]['startAmount']  # Get listing price
+                        eth_price = int(price) / (10 ** 18)  # Adjust for ETH (wei to ETH)
 
                         if has_unminted_rare_player(identifier):
                             opensea_url = f"https://opensea.io/assets/arbitrum/{token}/{identifier}"
                             footium_url = f"https://footium.club/game/club/{identifier}"
 
+                            division = get_club_division(identifier)
+
                             # Check if the listing is already in the CSV
                             if not is_listing_in_csv(opensea_url):
                                 # Post to webhook
-                                post_to_webhook(opensea_url, footium_url)
+                                post_to_webhook(opensea_url, footium_url, eth_price, division)
 
                                 # Add the listing to the CSV
                                 add_listing_to_csv(opensea_url, footium_url)
@@ -134,6 +137,40 @@ def fetch_listings():
             print(response.text)
             break
 
+# Function to get the club division
+def get_club_division(club_id):
+    query = """
+    query getClubDivision($where: ClubWhereUniqueInput!) {
+        club(where: $where) {
+            id
+            division {
+                name
+            }
+        }
+    }
+    """
+    
+    variables = {
+        "where": {
+            "id": int(club_id)
+        }
+    }
+
+    response = requests.post(GRAPHQL_ENDPOINT, json={"query": query, "variables": variables})
+    
+    if response.status_code == 200:
+        data = response.json()
+        if "data" in data and "club" in data["data"]:
+            club_data = data["data"]["club"]
+            division = club_data.get("division", {}).get("name", "Unknown Division")
+            return f"{division}"
+        else:
+            print(f"Club data not found for club ID: {club_id}")
+            return "Unknown Division"
+    else:
+        print(f"Error {response.status_code}: {response.text}")
+        return "Unknown Division"
+
 # Function to check if a listing is already in the CSV
 def is_listing_in_csv(opensea_url):
     with open(CSV_FILE, mode='r') as file:
@@ -150,8 +187,14 @@ def add_listing_to_csv(opensea_url, footium_url):
         writer.writerow([opensea_url, footium_url])
 
 # Function to post to Discord webhook
-def post_to_webhook(opensea_url, footium_url):
-    message = f"New club with academy rare listed:\nOpenSea URL: {opensea_url}\nFootium URL: {footium_url}"
+def post_to_webhook(opensea_url, footium_url, eth_price, division):
+    message = (
+        f"New club with academy rare listed:\n"
+        f"OpenSea URL: {opensea_url}\n"
+        f"Footium URL: {footium_url}\n"
+        f"Price: {eth_price:.4f} ETH\n"
+        f"Club Division: {division}\n"
+    )
     data = {
         "content": message
     }
