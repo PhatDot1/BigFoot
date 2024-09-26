@@ -63,7 +63,8 @@ def get_player_metadata(club_id, player_number):
     response = requests.post(GRAPHQL_ENDPOINT, json={"query": query, "variables": variables})
     if response.status_code == 200:
         data = response.json()
-        if "data" in data and "player" in data["data"]]:
+        # Fixed issue: Removed the unmatched closing bracket
+        if "data" in data and "player" in data["data"]:
             return data["data"]["player"]
         else:
             return None
