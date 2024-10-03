@@ -1,0 +1,30 @@
+name: Run Footium Player Metadata Script
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # Runs every 10 minutes
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    env:
+      DISCORD_WEBHOOK_URL2: ${{ secrets.DISCORD_WEBHOOK_URL2 }}  # Pass the environment variable
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+      
+      - name: Run the Footium player metadata script
+        run: |
+          python wen-rare.py
