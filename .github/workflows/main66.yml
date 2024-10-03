@@ -3,7 +3,7 @@ name: Footium Check
 on:
   schedule:
     # Runs the job every 10 minutes
-    - cron: "*/10 * * * *"
+    - cron: 
   workflow_dispatch: # Allows you to trigger the workflow manually
 
 jobs:
