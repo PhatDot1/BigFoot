@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import os
 
 # Define the updated GraphQL endpoint for player metadata
 GRAPHQL_ENDPOINT = "https://live.api.footium.club/api/graphql"
