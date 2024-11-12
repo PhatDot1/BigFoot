@@ -189,7 +189,7 @@ def add_listing_to_csv(opensea_url, footium_url):
 # Function to post to Discord webhook
 def post_to_webhook(opensea_url, footium_url, eth_price, division):
     message = (
-        f"New club with academy rare listed:\n"
+        f"GENERATION NUM 5 New club with academy rare listed:\n"
         f"OpenSea URL: {opensea_url}\n"
         f"Footium URL: {footium_url}\n"
         f"Price: {eth_price:.4f} ETH\n"
