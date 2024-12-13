@@ -70,7 +70,7 @@ def post_to_discord(player_metadata):
 # Loop through player IDs and check for metadata
 def check_players():
     for player_number in range(181, 192):
-        player_id = f"2-125-{player_number}-REWARD"
+        player_id = f"5-125-{player_number}-REWARD"
         print(f"Checking player: {player_id}")
         player_metadata = get_player_data_with_attributes(player_id)
         if player_metadata:
