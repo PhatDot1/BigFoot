@@ -73,7 +73,7 @@ def get_player_metadata(club_id, player_number):
 
 # Function to check if a player has "Rare" rarity and is unminted
 def has_unminted_rare_player(club_id):
-    for player_number in range(5):  # Assuming player numbers 0 to 4
+    for player_number in range(7):  # Assuming player numbers 0 to 4
         metadata = get_player_metadata(club_id, player_number)
         if metadata and metadata.get("rarity") == "Rare":
             return True
