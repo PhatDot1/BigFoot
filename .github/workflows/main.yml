@@ -3,7 +3,7 @@ name: Run Footium Listings Script
 on:
   schedule:
     # Run the script every 10 minutes
-    #- cron: '*/10 * * * *'
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
